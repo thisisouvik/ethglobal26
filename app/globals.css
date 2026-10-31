@@ -38,7 +38,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto !important;
 }
 
 body {
@@ -47,6 +47,52 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Cursor Fix: Keep mouse cursor visible at all times ──────────────── */
+/* Fix: Default black I-beam cursor disappears against dark/black backgrounds */
+html,
+body {
+  cursor: default !important;
+}
+
+/* All standard elements inherit the default arrow cursor */
+*, *::before, *::after {
+  cursor: default;
+}
+
+/* Clickable elements always show hand pointer */
+a,
+a *,
+button,
+button *,
+[role="button"],
+[role="button"] *,
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+select,
+summary {
+  cursor: pointer !important;
+}
+
+/* Editable text inputs show text cursor with high-contrast caret */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+textarea {
+  cursor: text !important;
+  caret-color: var(--accent) !important;
+}
+
+button:disabled,
+input:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed !important;
 }
 
 /* ─── Named Text Styles (B1) ────────────────────────────────────────── */
@@ -163,7 +209,6 @@ body {
   transition: background var(--motion-duration) var(--motion-base),
               transform var(--motion-duration) var(--motion-base),
               box-shadow var(--motion-duration) var(--motion-base);
-  cursor: pointer;
   border: none;
   outline: none;
 }
@@ -195,7 +240,6 @@ body {
   transition: border-color var(--motion-duration) var(--motion-base),
               background var(--motion-duration) var(--motion-base),
               transform var(--motion-duration) var(--motion-base);
-  cursor: pointer;
   outline: none;
 }
 .btn-secondary:hover {
@@ -219,36 +263,22 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* ─── Scroll Reveal (B7) ─────────────────────────────────────────────── */
+/* ─── Clean Static Sections (No scroll fade/jumping) ─────────────────── */
 .reveal {
-  opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 700ms var(--motion-base), transform 700ms var(--motion-base);
+  opacity: 1 !important;
+  transform: none !important;
 }
 .reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
+  opacity: 1 !important;
+  transform: none !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-  .reveal-word {
-    opacity: 1 !important;
-  }
-}
-
-/* ─── Tagline word reveal ────────────────────────────────────────────── */
 .reveal-word {
   display: inline-block;
-  opacity: 0.25;
-  transition: opacity 500ms var(--motion-base);
+  opacity: 1 !important;
 }
 .reveal-word.lit {
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 /* ─── Accent Badge ────────────────────────────────────────────────────── */
@@ -337,3 +367,19 @@ body {
 
 /* ─── Selection ───────────────────────────────────────────────────────── */
 ::selection { background: rgba(38, 161, 123, 0.3); color: white; }
+
+/* ─── Keyframes ───────────────────────────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

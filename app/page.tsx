@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowRight,
   CheckCircle,
@@ -11,17 +10,20 @@ import {
   CurrencyDollar,
   Globe,
   TrendUp,
+  ArrowUpRight,
+  Sparkle,
 } from "@phosphor-icons/react/dist/ssr";
-import { RevealSection, TaglineReveal } from "@/components/RevealSection";
 import { COURSES, CATEGORIES, getFeaturedCourses } from "@/lib/courses-data";
 import CourseCard from "@/components/CourseCard";
 import FaqAccordion from "@/components/FaqAccordion";
+import NetworkCanvas from "@/components/NetworkCanvas";
+import { Reveal, StaggerGroup, StaggerItem, Counter, Marquee, KineticHeadline, GlowCard } from "@/components/Motion";
 
 const STATS = [
-  { label: "Courses available", value: "24+", icon: BookOpen },
-  { label: "Students enrolled", value: "4,800+", icon: Users },
-  { label: "USDT in payouts", value: "$180K+", icon: CurrencyDollar },
-  { label: "Countries reached", value: "63", icon: Globe },
+  { label: "Courses available", value: 24, suffix: "+", icon: BookOpen },
+  { label: "Students enrolled", value: 4800, suffix: "+", icon: Users },
+  { label: "USDT in payouts", prefix: "$", value: 180, suffix: "K+", icon: CurrencyDollar },
+  { label: "Countries reached", value: 63, suffix: "", icon: Globe },
 ];
 
 const TRUST = [
@@ -74,78 +76,119 @@ const FAQS = [
   },
 ];
 
+const HOW_IT_WORKS = [
+  { step: "01", title: "Browse courses", body: "Filter by category, level, or price. Read full course details before committing." },
+  { step: "02", title: "Click Buy", body: "Enter your name and email on the course page. No account, no signup." },
+  { step: "03", title: "Send USDT", body: "Our payment page shows you the exact amount and wallet address. Send on WhiteChain." },
+  { step: "04", title: "Download instantly", body: "Payment confirms in minutes. Your download link arrives by email immediately." },
+];
+
 export default function HomePage() {
   const featured = getFeaturedCourses();
 
   return (
     <div className="flex flex-col">
 
-      {/* ─── Hero ─────────────────────────────────────────── */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-40 pb-28 overflow-hidden">
-        {/* glow */}
+      {/* ─── HERO ────────────────────────────────────────────────────── */}
+      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-44 pb-36 overflow-hidden min-h-[92vh]">
+        {/* Canvas network background */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <NetworkCanvas />
+        </div>
+
+        {/* Radial glow overlay */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden>
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] rounded-full opacity-[0.06]"
-            style={{ background: "radial-gradient(ellipse, #26a17b 0%, transparent 70%)" }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[700px] rounded-full"
+            style={{ background: "radial-gradient(ellipse, rgba(38,161,123,0.07) 0%, transparent 65%)" }}
+          />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-40"
+            style={{ background: "linear-gradient(to top, #000 0%, transparent 100%)" }}
           />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <div className="accent-badge mx-auto mb-8">
-            <Lightning size={13} weight="fill" />
-            <span>Crypto-native course marketplace · Pay in USDT</span>
-          </div>
-
-          <h1 className="heading-1 hero-gradient-text mb-6" style={{ maxWidth: 760, margin: "0 auto 24px" }}>
-            Learn Web3.<br />
-            Pay in USDT.<br />
-            No banks required.
-          </h1>
-
-          <p className="body-3 text-[var(--text-secondary)] mb-10 mx-auto" style={{ maxWidth: 540 }}>
-            The marketplace for crypto-native learners. Browse expert courses, pay instantly with USDT on WhiteChain, and get lifetime access in minutes.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <Link href="/courses" className="btn-primary button-lg py-3 px-8">
-              Browse all courses
-              <ArrowRight size={20} weight="bold" />
-            </Link>
-            <Link href="#how-it-works" className="btn-secondary py-3 px-8">
-              How it works
-            </Link>
-          </div>
-
-          {/* proof strip */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-[var(--text-tertiary)]">
-            {["USDT on WhiteChain", "Instant delivery", "Lifetime access", "No account needed"].map((item) => (
-              <div key={item} className="flex items-center gap-2">
-                <CheckCircle size={14} weight="fill" className="text-[var(--accent)]" />
-                <span className="caption-1">{item}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Stats bar ───────────────────────────────────── */}
-      <section className="border-y border-[var(--border-subtle)] bg-[var(--bg-surface-1)]">
-        <div className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {STATS.map((s) => (
-            <div key={s.label} className="flex flex-col items-center text-center gap-2">
-              <s.icon size={22} weight="duotone" className="text-[var(--accent)]" />
-              <p className="heading-4 text-white">{s.value}</p>
-              <p className="caption-2 text-[var(--text-secondary)]">{s.label}</p>
+        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center">
+          {/* Badge */}
+          <Reveal>
+            <div className="accent-badge mx-auto mb-8 group cursor-default">
+              <Sparkle size={13} weight="fill" className="text-[var(--accent)]" />
+              <span>Crypto-native course marketplace · Pay in USDT</span>
             </div>
-          ))}
+          </Reveal>
+
+          {/* Kinetic headline */}
+          <KineticHeadline
+            text="Learn Web3. Pay in USDT. No banks required."
+            className="heading-1 hero-gradient-text mb-6 justify-center text-center"
+          />
+
+          <Reveal delay={0.35}>
+            <p className="body-3 text-[var(--text-secondary)] mb-10 mx-auto" style={{ maxWidth: 520 }}>
+              The marketplace for crypto-native learners. Browse expert courses,
+              pay instantly with USDT on WhiteChain, and get lifetime access in minutes.
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.45}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+              <Link href="/courses" className="btn-primary button-lg py-3.5 px-8 group">
+                Browse all courses
+                <ArrowRight size={18} weight="bold" className="transition-transform duration-300 group-hover:translate-x-0.5" />
+              </Link>
+              <Link href="#how-it-works" className="btn-secondary py-3.5 px-8">
+                How it works
+              </Link>
+            </div>
+          </Reveal>
+
+          {/* Proof strip */}
+          <Reveal delay={0.55}>
+            <div className="flex flex-wrap items-center justify-center gap-6 text-[var(--text-tertiary)]">
+              {["USDT on WhiteChain", "Instant delivery", "Lifetime access", "No account needed"].map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <CheckCircle size={14} weight="fill" className="text-[var(--accent)]" />
+                  <span className="caption-1">{item}</span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+
         </div>
       </section>
 
-      {/* ─── Featured courses ─────────────────────────────── */}
-      <section className="py-24 px-6">
+      {/* ─── MARQUEE ─────────────────────────────────────────────────── */}
+      <div className="border-y border-[var(--border-subtle)] py-4 bg-[var(--bg-surface-1)] overflow-hidden">
+        <Marquee />
+      </div>
+
+      {/* ─── STATS ───────────────────────────────────────────────────── */}
+      <section className="py-20 px-6 bg-[var(--bg-surface-1)]">
+        <StaggerGroup className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10">
+          {STATS.map((s) => (
+            <StaggerItem key={s.label}>
+              <div className="flex flex-col items-center text-center gap-3">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                  style={{ background: "var(--accent-muted)" }}
+                >
+                  <s.icon size={22} weight="duotone" className="text-[var(--accent)]" />
+                </div>
+                <p className="heading-4 text-white">
+                  <Counter to={s.value} prefix={s.prefix ?? ""} suffix={s.suffix} />
+                </p>
+                <p className="caption-2 text-[var(--text-secondary)]">{s.label}</p>
+              </div>
+            </StaggerItem>
+          ))}
+        </StaggerGroup>
+      </section>
+
+      {/* ─── FEATURED COURSES ────────────────────────────────────────── */}
+      <section className="py-28 px-6">
         <div className="max-w-6xl mx-auto">
-          <RevealSection>
-            <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
+          <Reveal>
+            <div className="flex items-end justify-between mb-14 flex-wrap gap-4">
               <div>
                 <div className="accent-badge mb-4">
                   <Star size={13} weight="fill" />
@@ -153,50 +196,64 @@ export default function HomePage() {
                 </div>
                 <h2 className="heading-3 text-white">Featured courses</h2>
               </div>
-              <Link href="/courses" className="btn-secondary py-2 px-5 text-sm">
-                View all courses →
+              <Link
+                href="/courses"
+                className="inline-flex items-center gap-2 caption-1 text-[var(--text-secondary)] hover:text-white transition-colors duration-200 group"
+               
+              >
+                View all courses
+                <ArrowUpRight
+                  size={15}
+                  className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
               </Link>
             </div>
-          </RevealSection>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featured.map((course, i) => (
-              <RevealSection key={course.id} delay={i * 80}>
+          <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featured.map((course) => (
+              <StaggerItem key={course.id}>
                 <CourseCard course={course} />
-              </RevealSection>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
 
-      {/* ─── Tagline Reveal (B11 mandatory) ──────────────── */}
-      <section className="py-32 px-6 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-1)]">
+      {/* ─── TAGLINE REVEAL ──────────────────────────────────────────── */}
+      <section className="py-36 px-6 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-1)] overflow-hidden">
         <div className="max-w-4xl mx-auto">
-          <TaglineReveal
+          <Reveal>
+            <p className="caption-3 tracking-widest uppercase text-[var(--accent)] mb-6">Why ChainCademy?</p>
+          </Reveal>
+          <KineticHeadline
             text="No Stripe. No PayPal. No bank. Just USDT — and knowledge that lasts forever."
             className="heading-2 text-white leading-tight"
           />
         </div>
       </section>
 
-      {/* ─── Categories ──────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-[var(--border-subtle)]">
+      {/* ─── CATEGORIES ──────────────────────────────────────────────── */}
+      <section className="py-28 px-6 border-t border-[var(--border-subtle)]">
         <div className="max-w-6xl mx-auto">
-          <RevealSection>
-            <h2 className="heading-3 text-white mb-12 text-center">Browse by category</h2>
-          </RevealSection>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {CATEGORIES.filter(c => c !== "All").map((cat, i) => {
-              const count = COURSES.filter(c => c.category === cat).length;
+          <Reveal>
+            <div className="text-center mb-14">
+              <h2 className="heading-3 text-white">Browse by category</h2>
+            </div>
+          </Reveal>
+          <StaggerGroup className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {CATEGORIES.filter((c) => c !== "All").map((cat) => {
+              const count = COURSES.filter((c) => c.category === cat).length;
               return (
-                <RevealSection key={cat} delay={i * 60}>
+                <StaggerItem key={cat}>
                   <Link
                     href={`/courses?category=${cat}`}
-                    className="card card-hover p-6 flex flex-col items-center text-center gap-3 group"
+                    className="card card-hover p-6 flex flex-col items-center text-center gap-3 group block"
                     style={{ borderRadius: "var(--radius-xl)" }}
+                   
                   >
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center"
+                      className="w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
                       style={{ background: "var(--accent-muted)" }}
                     >
                       <BookOpen size={22} weight="duotone" className="text-[var(--accent)]" />
@@ -204,101 +261,143 @@ export default function HomePage() {
                     <p className="title-3 text-white group-hover:text-[var(--accent)] transition-colors duration-300">
                       {cat}
                     </p>
-                    <p className="caption-4 text-[var(--text-tertiary)]">{count} course{count !== 1 ? "s" : ""}</p>
+                    <p className="caption-4 text-[var(--text-tertiary)]">
+                      {count} course{count !== 1 ? "s" : ""}
+                    </p>
                   </Link>
-                </RevealSection>
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
 
-      {/* ─── How It Works ─────────────────────────────────── */}
-      <section id="how-it-works" className="py-24 px-6 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-1)]">
+      {/* ─── HOW IT WORKS ────────────────────────────────────────────── */}
+      <section id="how-it-works" className="py-28 px-6 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-1)]">
         <div className="max-w-5xl mx-auto">
-          <RevealSection>
+          <Reveal>
             <div className="text-center mb-16">
               <h2 className="heading-3 text-white mb-4">How it works</h2>
               <p className="body-3 text-[var(--text-secondary)]">
                 From browse to download in under five minutes.
               </p>
             </div>
-          </RevealSection>
+          </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[
-              { step: "01", title: "Browse courses", body: "Filter by category, level, or price. Read full course details before committing." },
-              { step: "02", title: "Click Buy", body: "Enter your name and email on the course page. No account, no signup." },
-              { step: "03", title: "Send USDT", body: "Our payment page shows you the exact amount and wallet address. Send on WhiteChain." },
-              { step: "04", title: "Download instantly", body: "Payment confirms in minutes. Your download link arrives by email immediately." },
-            ].map((s, i) => (
-              <RevealSection key={s.step} delay={i * 80}>
-                <div className="card p-6 flex flex-col gap-4">
-                  <span className="font-mono text-[var(--accent)] caption-3">{s.step}</span>
-                  <h3 className="title-2 text-white">{s.title}</h3>
-                  <p className="body-6 text-[var(--text-secondary)]">{s.body}</p>
-                </div>
-              </RevealSection>
-            ))}
+          {/* Step connector layout */}
+          <div className="relative">
+            {/* Connecting line */}
+            <div
+              className="absolute top-10 left-8 right-8 h-px hidden md:block"
+              style={{ background: "linear-gradient(to right, transparent, var(--border-default), transparent)" }}
+              aria-hidden
+            />
+            <StaggerGroup className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {HOW_IT_WORKS.map((s) => (
+                <StaggerItem key={s.step}>
+                  <GlowCard className="card p-6 flex flex-col gap-4 h-full" style={{ borderRadius: "var(--radius-xl)" }}>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-mono text-[var(--accent)] caption-3"
+                        style={{ background: "var(--accent-muted)" }}
+                      >
+                        {s.step}
+                      </div>
+                    </div>
+                    <h3 className="title-2 text-white">{s.title}</h3>
+                    <p className="body-6 text-[var(--text-secondary)]">{s.body}</p>
+                  </GlowCard>
+                </StaggerItem>
+              ))}
+            </StaggerGroup>
           </div>
         </div>
       </section>
 
-      {/* ─── Why USDT ─────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-[var(--border-subtle)]">
+      {/* ─── WHY USDT ────────────────────────────────────────────────── */}
+      <section className="py-28 px-6 border-t border-[var(--border-subtle)]">
         <div className="max-w-5xl mx-auto">
-          <RevealSection>
+          <Reveal>
             <div className="text-center mb-16">
               <h2 className="heading-3 text-white mb-4">Why pay in USDT?</h2>
               <p className="body-3 text-[var(--text-secondary)] mx-auto" style={{ maxWidth: 480 }}>
-                USDT payments work for anyone, anywhere — without a bank account, credit card, or payment processor.
+                USDT payments work for anyone, anywhere — without a bank account,
+                credit card, or payment processor.
               </p>
             </div>
-          </RevealSection>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {TRUST.map((t, i) => (
-              <RevealSection key={t.title} delay={i * 80}>
-                <div className="card card-hover p-8 flex gap-5">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: "var(--accent-muted)" }}>
+          </Reveal>
+          <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {TRUST.map((t) => (
+              <StaggerItem key={t.title}>
+                <GlowCard className="card card-hover p-8 flex gap-5 h-full" style={{ borderRadius: "var(--radius-xl)" }}>
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: "var(--accent-muted)" }}
+                  >
                     <t.icon size={22} weight="duotone" className="text-[var(--accent)]" />
                   </div>
                   <div>
                     <h3 className="title-2 text-white mb-2">{t.title}</h3>
                     <p className="body-6 text-[var(--text-secondary)]">{t.body}</p>
                   </div>
-                </div>
-              </RevealSection>
+                </GlowCard>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
       </section>
 
-      {/* ─── FAQ ─────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-1)]">
+      {/* ─── SECOND MARQUEE ──────────────────────────────────────────── */}
+      <div className="border-t border-[var(--border-subtle)] py-4 overflow-hidden">
+        <Marquee />
+      </div>
+
+      {/* ─── FAQ ─────────────────────────────────────────────────────── */}
+      <section className="py-28 px-6 border-t border-[var(--border-subtle)] bg-[var(--bg-surface-1)]">
         <div className="max-w-3xl mx-auto">
-          <RevealSection>
+          <Reveal>
             <h2 className="heading-3 text-white text-center mb-16">Frequently asked questions</h2>
-          </RevealSection>
+          </Reveal>
           <FaqAccordion faqs={FAQS} />
         </div>
       </section>
 
-      {/* ─── CTA ─────────────────────────────────────────── */}
-      <section className="py-24 px-6 border-t border-[var(--border-subtle)]">
-        <div className="max-w-2xl mx-auto">
-          <RevealSection>
-            <div className="card p-12 text-center" style={{ borderRadius: "var(--radius-2xl)" }}>
-              <h2 className="heading-3 text-white mb-4">Start learning with USDT today</h2>
-              <p className="body-3 text-[var(--text-secondary)] mb-8 mx-auto" style={{ maxWidth: 400 }}>
-                Browse expert courses, pay instantly on WhiteChain, and get lifetime access. No bank needed.
-              </p>
-              <Link href="/courses" className="btn-primary button-lg py-3 px-8">
-                Browse all courses
-                <ArrowRight size={20} weight="bold" />
-              </Link>
+      {/* ─── CTA ─────────────────────────────────────────────────────── */}
+      <section className="py-28 px-6 border-t border-[var(--border-subtle)]">
+        <Reveal>
+          <div className="max-w-2xl mx-auto">
+            <div
+              className="relative overflow-hidden card p-16 text-center"
+              style={{ borderRadius: "var(--radius-2xl)" }}
+            >
+              {/* CTA glow */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(38,161,123,0.08) 0%, transparent 70%)" }}
+                aria-hidden
+              />
+              <div className="relative z-10">
+                <div className="accent-badge mx-auto mb-6">
+                  <Lightning size={13} weight="fill" />
+                  <span>Start now — no signup</span>
+                </div>
+                <h2 className="heading-3 text-white mb-4">Start learning with USDT today</h2>
+                <p className="body-3 text-[var(--text-secondary)] mb-10 mx-auto" style={{ maxWidth: 380 }}>
+                  Browse expert courses, pay instantly on WhiteChain, and get
+                  lifetime access. No bank needed.
+                </p>
+                <Link href="/courses" className="btn-primary button-lg py-4 px-10 group">
+                  Browse all courses
+                  <ArrowRight
+                    size={20}
+                    weight="bold"
+                    className="transition-transform duration-300 group-hover:translate-x-1"
+                  />
+                </Link>
+              </div>
             </div>
-          </RevealSection>
-        </div>
+          </div>
+        </Reveal>
       </section>
     </div>
   );
