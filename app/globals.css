@@ -1,0 +1,339 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ─────────────────────────────────────────────────── */
+:root {
+  --bg-base: #000000;
+  --bg-surface-1: #181818;
+  --bg-surface-2: #1f1f1f;
+  --bg-surface-3: #272727;
+  --bg-surface-4: #313131;
+
+  --border-subtle: #272727;
+  --border-default: #313131;
+
+  --accent: #26a17b;
+  --accent-hover: #1f8c68;
+  --accent-muted: rgba(38, 161, 123, 0.15);
+
+  --text-primary: #ffffff;
+  --text-secondary: #9b9b9b;
+  --text-tertiary: #5a5a5a;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+
+  --motion-base: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-duration: 500ms;
+}
+
+/* ─── Base Reset ────────────────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Named Text Styles (B1) ────────────────────────────────────────── */
+
+/* Headings */
+.heading-1 {
+  font-size: 60px;
+  line-height: 60px;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.heading-2 {
+  font-size: 48px;
+  line-height: 48px;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.heading-3 {
+  font-size: 36px;
+  line-height: 40px;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.heading-4 {
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.heading-5 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.heading-6 {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+/* Titles */
+.title-1 { font-size: 20px; line-height: 28px; font-weight: 500; }
+.title-2 { font-size: 18px; line-height: 28px; font-weight: 500; }
+.title-3 { font-size: 16px; line-height: 24px; font-weight: 500; }
+.title-4 { font-size: 14px; line-height: 20px; font-weight: 500; }
+.title-5 { font-size: 12px; line-height: 16px; font-weight: 500; }
+
+/* Body */
+.body-1 { font-size: 16px; line-height: 24px; font-weight: 600; text-wrap: pretty; }
+.body-2 { font-size: 16px; line-height: 24px; font-weight: 500; text-wrap: pretty; }
+.body-3 { font-size: 16px; line-height: 24px; font-weight: 400; text-wrap: pretty; }
+.body-4 { font-size: 14px; line-height: 20px; font-weight: 600; text-wrap: pretty; }
+.body-5 { font-size: 14px; line-height: 20px; font-weight: 500; text-wrap: pretty; }
+.body-6 { font-size: 14px; line-height: 20px; font-weight: 400; text-wrap: pretty; }
+
+/* Buttons */
+.button-lg  { font-size: 18px; line-height: 28px; font-weight: 600; }
+.button-md  { font-size: 16px; line-height: 24px; font-weight: 600; }
+.button-sm  { font-size: 14px; line-height: 20px; font-weight: 600; }
+.button-xsm { font-size: 12px; line-height: 16px; font-weight: 600; }
+
+/* Captions */
+.caption-1 { font-size: 14px; line-height: 20px; font-weight: 500; }
+.caption-2 { font-size: 14px; line-height: 20px; font-weight: 400; }
+.caption-3 { font-size: 12px; line-height: 16px; font-weight: 600; }
+.caption-4 { font-size: 12px; line-height: 16px; font-weight: 500; }
+.caption-5 { font-size: 12px; line-height: 16px; font-weight: 400; }
+
+/* ─── Hero Gradient Text (B5) ──────────────────────────────────────── */
+.hero-gradient-text {
+  background: linear-gradient(90deg, #ffffff 0%, #9b9b9b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Accent Gradient Text ─────────────────────────────────────────── */
+.accent-gradient-text {
+  background: linear-gradient(90deg, #26a17b 0%, #3dd9a4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Card / Surface ────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+}
+
+.card-hover {
+  transition: border-color var(--motion-duration) var(--motion-base),
+              transform var(--motion-duration) var(--motion-base);
+}
+.card-hover:hover {
+  border-color: var(--border-default);
+  transform: translateY(-2px);
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  transition: background var(--motion-duration) var(--motion-base),
+              transform var(--motion-duration) var(--motion-base),
+              box-shadow var(--motion-duration) var(--motion-base);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(38, 161, 123, 0.3);
+}
+.btn-primary:active {
+  transform: scale(0.98) translateY(0);
+}
+.btn-primary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  transition: border-color var(--motion-duration) var(--motion-base),
+              background var(--motion-duration) var(--motion-base),
+              transform var(--motion-duration) var(--motion-base);
+  cursor: pointer;
+  outline: none;
+}
+.btn-secondary:hover {
+  border-color: var(--text-secondary);
+  background: var(--bg-surface-1);
+  transform: translateY(-1px);
+}
+.btn-secondary:active {
+  transform: scale(0.98) translateY(0);
+}
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ─── Navbar Blur ────────────────────────────────────────────────────── */
+.nav-glass {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ─── Scroll Reveal (B7) ─────────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 700ms var(--motion-base), transform 700ms var(--motion-base);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .reveal-word {
+    opacity: 1 !important;
+  }
+}
+
+/* ─── Tagline word reveal ────────────────────────────────────────────── */
+.reveal-word {
+  display: inline-block;
+  opacity: 0.25;
+  transition: opacity 500ms var(--motion-base);
+}
+.reveal-word.lit {
+  opacity: 1;
+}
+
+/* ─── Accent Badge ────────────────────────────────────────────────────── */
+.accent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--accent-muted);
+  border: 1px solid rgba(38, 161, 123, 0.3);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ─── USDT Price Badge ───────────────────────────────────────────────── */
+.usdt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--accent-muted);
+  border: 1px solid rgba(38, 161, 123, 0.4);
+  border-radius: var(--radius-lg);
+  color: var(--accent);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* ─── Status Badges ───────────────────────────────────────────────────── */
+.status-pending  { background: rgba(251, 191, 36, 0.12); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+.status-paid     { background: rgba(38, 161, 123, 0.12); color: #26a17b; border: 1px solid rgba(38, 161, 123, 0.3); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+.status-delivered { background: rgba(99, 102, 241, 0.12); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+.status-failed   { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+.status-refunded { background: rgba(156, 163, 175, 0.12); color: #9ca3af; border: 1px solid rgba(156, 163, 175, 0.3); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+
+/* ─── Input Fields ────────────────────────────────────────────────────── */
+.input-field {
+  width: 100%;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 24px;
+  font-family: inherit;
+  transition: border-color 300ms var(--motion-base), box-shadow 300ms var(--motion-base);
+  outline: none;
+}
+.input-field::placeholder {
+  color: var(--text-tertiary);
+}
+.input-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(38, 161, 123, 0.15);
+}
+.input-field.error {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
+}
+
+/* ─── Skip to content (B10) ──────────────────────────────────────────── */
+.skip-to-content {
+  position: fixed;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  background: var(--accent);
+  color: white;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: top 200ms;
+}
+.skip-to-content:focus {
+  top: 16px;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* ─── Selection ───────────────────────────────────────────────────────── */
+::selection { background: rgba(38, 161, 123, 0.3); color: white; }
