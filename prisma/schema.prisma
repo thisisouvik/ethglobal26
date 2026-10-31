@@ -1,0 +1,75 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  slug        String   @unique
+  title       String
+  subtitle    String
+  description String
+  longDesc    String?
+  priceUsdt   Decimal  @db.Decimal(10, 2)
+  image       String
+  category    String
+  tags        String[]
+  instructor  String
+  duration    String   // e.g. "12 hours"
+  lessons     Int
+  level       String   // Beginner / Intermediate / Advanced
+  featured    Boolean  @default(false)
+  published   Boolean  @default(true)
+  rating      Decimal  @default(4.5) @db.Decimal(3, 1)
+  reviewCount Int      @default(0)
+
+  orders      Order[]
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Customer
+  email     String
+  name      String
+
+  // Course
+  courseId    String
+  courseName  String
+  priceUsdt   Decimal @db.Decimal(10, 2)
+
+  // Payment
+  status        OrderStatus @default(PENDING)
+  paymentTxHash String?
+  paymentAddr   String?
+  webhookData   Json?
+
+  // Delivery
+  downloadUrl String?
+  deliveredAt DateTime?
+
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@index([email])
+  @@index([status])
+  @@index([courseId])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  DELIVERED
+  FAILED
+  REFUNDED
+}
