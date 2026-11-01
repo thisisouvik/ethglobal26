@@ -1,6 +1,11 @@
-// Static course catalog — used for listing pages.
-// In production these are seeded into the DB via prisma/seed.ts.
-// The DB is the source of truth for orders; courses here drive the UI.
+// Shared course types + helpers.
+//
+// The DATABASE is the single source of truth for course content — there is no
+// static fallback catalog in the app. New/changed content goes through the DB
+// (seed with `npm run db:seed` or edit via Prisma Studio) and every page and
+// API reads it from there via `dbCourseToCourse()`.
+
+import type { Prisma } from "@prisma/client";
 
 export interface Course {
   id: string;
@@ -25,424 +30,31 @@ export interface Course {
   includes: string[];
 }
 
-export const COURSES: Course[] = [
-  {
-    id: "course-solidity-01",
-    slug: "solidity-smart-contracts",
-    title: "Solidity Smart Contract Development",
-    subtitle: "Build and deploy production-ready smart contracts on EVM chains",
-    description:
-      "Master Solidity from scratch and ship secure, gas-optimized smart contracts. Covers ERC-20, ERC-721, upgradeable proxies, and DeFi primitives.",
-    longDesc:
-      "This course takes you from writing your first Solidity function to deploying a full DeFi protocol. You will learn how the EVM works under the hood, how to use Hardhat and Foundry, how to write gas-efficient code, and how to audit your own contracts before going live.",
-    priceUsdt: 49,
-    image:
-      "https://images.unsplash.com/photo-1639762681057-408e52192e55?w=800&q=80&auto=format&fit=crop",
-    category: "Blockchain",
-    tags: ["Solidity", "EVM", "DeFi", "Smart Contracts"],
-    instructor: "Arjun Mehta",
-    instructorTitle: "Senior Smart Contract Engineer",
-    duration: "18 hours",
-    lessons: 74,
-    level: "Intermediate",
-    featured: true,
-    rating: 4.8,
-    reviewCount: 312,
-    curriculum: [
-      {
-        section: "EVM Fundamentals",
-        lessons: ["How the EVM executes bytecode", "Storage, memory, calldata", "Gas mechanics"],
-      },
-      {
-        section: "Solidity Core",
-        lessons: ["Types and visibility", "Functions and modifiers", "Events and errors", "Interfaces and inheritance"],
-      },
-      {
-        section: "Token Standards",
-        lessons: ["ERC-20 from scratch", "ERC-721 and metadata", "ERC-1155 multi-token"],
-      },
-      {
-        section: "DeFi Patterns",
-        lessons: ["AMM design", "Lending pools", "Flash loans", "Price oracles"],
-      },
-      {
-        section: "Security and Auditing",
-        lessons: ["Reentrancy attacks", "Integer overflow", "Access control bugs", "Slither and Mythril"],
-      },
-    ],
-    includes: [
-      "74 video lessons · 18 hours total",
-      "Hardhat and Foundry project templates",
-      "3 production-grade contract projects",
-      "Security audit checklist",
-      "Lifetime access and updates",
-    ],
-  },
-  {
-    id: "course-nextjs-02",
-    slug: "nextjs-fullstack-web3",
-    title: "Full-Stack Web3 with Next.js",
-    subtitle: "Connect React frontends to smart contracts — ship a dApp in a weekend",
-    description:
-      "Learn to build full-stack Web3 applications with Next.js 16, wagmi, viem, and IPFS. Go from a blank repo to a deployed dApp with a real contract backend.",
-    longDesc:
-      "This course covers the complete stack for modern dApp development: Next.js App Router, Tailwind, wagmi/viem for contract calls, wallet connection with RainbowKit, on-chain data fetching, and IPFS for decentralized storage. By the end you will have shipped a functional NFT marketplace.",
-    priceUsdt: 39,
-    image:
-      "https://images.unsplash.com/photo-1555099962-4199c345e5dd?w=800&q=80&auto=format&fit=crop",
-    category: "Web3",
-    tags: ["Next.js", "wagmi", "viem", "dApp", "React"],
-    instructor: "Priya Sharma",
-    instructorTitle: "Lead Frontend Engineer, Web3",
-    duration: "14 hours",
-    lessons: 58,
-    level: "Intermediate",
-    featured: true,
-    rating: 4.7,
-    reviewCount: 198,
-    curriculum: [
-      {
-        section: "Next.js 16 Foundations",
-        lessons: ["App Router architecture", "Server components vs client", "Data fetching patterns"],
-      },
-      {
-        section: "Wallet Integration",
-        lessons: ["RainbowKit setup", "Signing messages", "Multi-chain support"],
-      },
-      {
-        section: "Contract Interaction",
-        lessons: ["Reading contract state", "Writing transactions", "Event subscriptions", "Error handling"],
-      },
-      {
-        section: "Building the NFT Marketplace",
-        lessons: ["Listing and buying NFTs", "IPFS metadata", "Royalties", "Deploying to mainnet"],
-      },
-    ],
-    includes: [
-      "58 video lessons · 14 hours total",
-      "Complete NFT marketplace source code",
-      "Reusable wagmi hooks library",
-      "Design system with Tailwind",
-      "Lifetime access and updates",
-    ],
-  },
-  {
-    id: "course-defi-03",
-    slug: "defi-protocol-engineering",
-    title: "DeFi Protocol Engineering",
-    subtitle: "Architect and build your own lending, staking, and yield protocols",
-    description:
-      "An advanced deep dive into DeFi protocol design. Study Aave, Uniswap, and Compound architectures, then build your own protocol from the ground up.",
-    longDesc:
-      "For engineers who already know Solidity and want to build production DeFi. Covers automated market makers, interest rate models, liquidation mechanics, governance systems, and protocol security. Includes a complete clone of a major DeFi protocol as the capstone project.",
-    priceUsdt: 79,
-    image:
-      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80&auto=format&fit=crop",
-    category: "DeFi",
-    tags: ["DeFi", "AMM", "Aave", "Uniswap", "Yield"],
-    instructor: "Vikram Rao",
-    instructorTitle: "DeFi Protocol Architect",
-    duration: "24 hours",
-    lessons: 96,
-    level: "Advanced",
-    featured: true,
-    rating: 4.9,
-    reviewCount: 87,
-    curriculum: [
-      {
-        section: "AMM Architecture",
-        lessons: ["Constant product formula", "Concentrated liquidity", "Fee mechanics", "Slippage and price impact"],
-      },
-      {
-        section: "Lending Protocols",
-        lessons: ["Collateral models", "Interest rate curves", "Liquidation engines", "Flash loans"],
-      },
-      {
-        section: "Governance and DAOs",
-        lessons: ["Token voting", "Timelock contracts", "Proposal systems", "Multisig coordination"],
-      },
-      {
-        section: "Capstone: Protocol Clone",
-        lessons: ["Architecture design", "Core contracts", "Frontend integration", "Security review", "Mainnet deployment"],
-      },
-    ],
-    includes: [
-      "96 video lessons · 24 hours total",
-      "Full DeFi protocol source code",
-      "Mainnet fork testing setup",
-      "Architecture decision records",
-      "Private Discord community",
-      "Lifetime access and updates",
-    ],
-  },
-  {
-    id: "course-rust-04",
-    slug: "rust-for-blockchain",
-    title: "Rust for Blockchain Development",
-    subtitle: "Write high-performance on-chain programs with Rust and Solana",
-    description:
-      "Learn Rust from the ground up with a blockchain focus. Build Solana programs using the Anchor framework, write SPL tokens, and deploy to devnet.",
-    longDesc:
-      "Rust is the language of high-performance blockchains. This course teaches Rust through the lens of blockchain development: ownership and lifetimes in the context of on-chain memory, serialization for account data, and the Anchor framework for Solana. No prior Rust knowledge needed.",
-    priceUsdt: 59,
-    image:
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80&auto=format&fit=crop",
-    category: "Blockchain",
-    tags: ["Rust", "Solana", "Anchor", "SPL"],
-    instructor: "Kenji Tanaka",
-    instructorTitle: "Solana Core Contributor",
-    duration: "20 hours",
-    lessons: 81,
-    level: "Intermediate",
-    featured: false,
-    rating: 4.6,
-    reviewCount: 143,
-    curriculum: [
-      {
-        section: "Rust Fundamentals",
-        lessons: ["Ownership and borrowing", "Enums and pattern matching", "Traits and generics", "Error handling"],
-      },
-      {
-        section: "Solana Architecture",
-        lessons: ["Accounts model", "Programs vs contracts", "PDAs and CPIs"],
-      },
-      {
-        section: "Anchor Framework",
-        lessons: ["Account validation", "Instruction handlers", "State management", "Testing with BankRun"],
-      },
-    ],
-    includes: [
-      "81 video lessons · 20 hours total",
-      "Anchor project boilerplate",
-      "SPL token program from scratch",
-      "Localnet and devnet deployment guides",
-      "Lifetime access and updates",
-    ],
-  },
-  {
-    id: "course-audit-05",
-    slug: "smart-contract-security-auditing",
-    title: "Smart Contract Security Auditing",
-    subtitle: "Find and fix vulnerabilities like a professional auditor",
-    description:
-      "A practitioner's guide to smart contract security. Learn to identify the top 20 vulnerability classes, use automated tools, and write professional audit reports.",
-    longDesc:
-      "Security auditing is one of the highest-paid skills in Web3. This course walks through real vulnerabilities from past exploits, teaches you to think like an attacker, and gives you a repeatable auditing process used by professional firms. Includes 10 CTF challenges to sharpen your skills.",
-    priceUsdt: 69,
-    image:
-      "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&q=80&auto=format&fit=crop",
-    category: "Security",
-    tags: ["Security", "Auditing", "CTF", "Slither", "Foundry"],
-    instructor: "Zara Ahmed",
-    instructorTitle: "Lead Auditor, Web3 Security Firm",
-    duration: "16 hours",
-    lessons: 64,
-    level: "Advanced",
-    featured: false,
-    rating: 4.9,
-    reviewCount: 209,
-    curriculum: [
-      {
-        section: "Attack Taxonomy",
-        lessons: ["Reentrancy and cross-function", "Integer edge cases", "Access control failures", "Oracle manipulation"],
-      },
-      {
-        section: "Auditing Process",
-        lessons: ["Scoping a codebase", "Manual review checklist", "Automated tool workflow", "Writing findings"],
-      },
-      {
-        section: "CTF Challenges",
-        lessons: ["10 progressively harder challenges", "Walkthrough videos for each"],
-      },
-    ],
-    includes: [
-      "64 video lessons · 16 hours total",
-      "10 CTF challenge contracts",
-      "Professional audit report template",
-      "Slither and Mythril setup guides",
-      "Lifetime access and updates",
-    ],
-  },
-  {
-    id: "course-zk-06",
-    slug: "zero-knowledge-proofs",
-    title: "Zero-Knowledge Proofs in Practice",
-    subtitle: "Build zk-SNARKs and zk-STARKs for real applications",
-    description:
-      "Demystify zero-knowledge proofs and build real circuits with Circom and Noir. Covers the math, the tooling, and practical use cases like private voting and identity.",
-    longDesc:
-      "ZK proofs are the most exciting primitive in cryptography today. This course starts from the math — polynomial commitments, elliptic curves, and proof systems — then quickly gets practical with Circom circuits, Groth16 proofs, and on-chain verifiers. No cryptography background required.",
-    priceUsdt: 89,
-    image:
-      "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80&auto=format&fit=crop",
-    category: "Cryptography",
-    tags: ["ZK", "Circom", "Noir", "SNARKs", "STARKs"],
-    instructor: "Elena Volkov",
-    instructorTitle: "ZK Research Engineer",
-    duration: "22 hours",
-    lessons: 88,
-    level: "Advanced",
-    featured: true,
-    rating: 4.8,
-    reviewCount: 61,
-    curriculum: [
-      {
-        section: "Cryptographic Foundations",
-        lessons: ["Polynomial commitments", "Elliptic curve basics", "Hash functions for ZK"],
-      },
-      {
-        section: "Proof Systems",
-        lessons: ["Groth16 deep dive", "PLONK and variants", "STARKs without trusted setup"],
-      },
-      {
-        section: "Circom and SnarkJS",
-        lessons: ["Writing arithmetic circuits", "Trusted setup ceremonies", "On-chain verifier deployment"],
-      },
-      {
-        section: "Applications",
-        lessons: ["Private voting system", "ZK identity (proof of personhood)", "Rollup proof generation"],
-      },
-    ],
-    includes: [
-      "88 video lessons · 22 hours total",
-      "Complete Circom circuit library",
-      "4 production application examples",
-      "Math reference PDF",
-      "Private Discord community",
-      "Lifetime access and updates",
-    ],
-  },
-  {
-    id: "course-wallet-07",
-    slug: "web3-wallets-ethers-crash-course",
-    title: "Web3 Wallets & Ethers.js Fast Track",
-    subtitle: "Connect wallets, sign transactions, and read contract state in 3 hours",
-    description:
-      "A fast-paced, hands-on workshop teaching modern wallet integration with Ethers.js, RainbowKit, and MetaMask. Ship transaction signing with zero fluff.",
-    longDesc:
-      "Master the essential bridge between user wallets and blockchain networks. In this focused micro-course, you will learn how to connect MetaMask, Rabby, and WalletConnect, manage network switching, sign typed data (EIP-712), and handle wallet disconnects gracefully. Perfect for developers wanting quick, practical Web3 frontend skills at an accessible price.",
-    priceUsdt: 4.99,
-    image:
-      "https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?w=800&q=80&auto=format&fit=crop",
-    category: "Web3",
-    tags: ["Ethers.js", "Wallets", "MetaMask", "EIP-712"],
-    instructor: "Liam Chen",
-    instructorTitle: "Web3 Frontend Specialist",
-    duration: "3 hours",
-    lessons: 18,
-    level: "Beginner",
-    featured: true,
-    rating: 4.9,
-    reviewCount: 542,
-    curriculum: [
-      {
-        section: "Wallet Providers",
-        lessons: ["Browser extensions vs injected providers", "RPC connection setup", "Handling account and chain change events"],
-      },
-      {
-        section: "Transaction Signing",
-        lessons: ["Sending native transfers", "ERC-20 approvals and transfers", "EIP-712 structured data signing"],
-      },
-      {
-        section: "Production Patterns",
-        lessons: ["Transaction receipt polling", "User rejection error handling", "Multi-wallet connection modal"],
-      },
-    ],
-    includes: [
-      "18 video lessons · 3 hours total",
-      "Ready-to-use wallet connection boilerplate",
-      "EIP-712 signature verification helper",
-      "Lifetime access and updates",
-    ],
-  },
-  {
-    id: "course-gas-08",
-    slug: "solidity-gas-optimization-handbook",
-    title: "Solidity Gas Optimization Masterclass",
-    subtitle: "Cut EVM transaction costs by up to 40% with assembly and opcode tricks",
-    description:
-      "Concrete techniques to slash gas consumption in EVM smart contracts. Covers storage packing, custom errors, Yul assembly, and calldata caching.",
-    longDesc:
-      "High gas costs kill dApp adoption. This intensive course teaches you the exact gas-saving techniques used by leading DeFi protocols. You will dive into EVM storage slot packing, immutable vs constant variables, unchecked math, calldata vs memory optimization, and targeted inline Yul assembly to reduce execution gas by up to 40%.",
-    priceUsdt: 6.5,
-    image:
-      "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&q=80&auto=format&fit=crop",
-    category: "Blockchain",
-    tags: ["Solidity", "Gas", "Yul", "EVM", "Optimization"],
-    instructor: "Sophia Rodriguez",
-    instructorTitle: "Principal EVM Optimization Engineer",
-    duration: "4.5 hours",
-    lessons: 24,
-    level: "Intermediate",
-    featured: false,
-    rating: 4.8,
-    reviewCount: 388,
-    curriculum: [
-      {
-        section: "EVM Storage Mechanics",
-        lessons: ["Slot packing rules and bitmasking", "Transient storage (EIP-1153)", "Constant and immutable compiler inlining"],
-      },
-      {
-        section: "Execution Optimizations",
-        lessons: ["Custom errors vs require strings", "Calldata routing vs memory copies", "Short-circuiting boolean evaluations"],
-      },
-      {
-        section: "Yul & Assembly Techniques",
-        lessons: ["Inline assembly for memory management", "Optimizing hash calculations", "Foundry gas snapshot profiling"],
-      },
-    ],
-    includes: [
-      "24 video lessons · 4.5 hours total",
-      "Gas benchmark test suite in Foundry",
-      "Top 30 gas optimization patterns cheat sheet",
-      "Lifetime access and updates",
-    ],
-  },
-  {
-    id: "course-defi-starter-09",
-    slug: "defi-yield-farming-fundamentals",
-    title: "DeFi Yield & Staking Fundamentals",
-    subtitle: "Understand liquidity pools, impermanent loss, and token staking math",
-    description:
-      "Clear, actionable guide to how DeFi yields actually work. Learn liquidity provisioning, staking contract mechanics, and risk management.",
-    longDesc:
-      "Demystify the mechanics behind DeFi yields. This course breaks down Automated Market Maker (AMM) liquidity pools, calculating real yields vs inflationary rewards, modeling impermanent loss, and interacting with single-sided staking and vault contracts. Includes code walkthroughs of Uniswap V2 and ERC-4626 Tokenized Vaults.",
-    priceUsdt: 8.9,
-    image:
-      "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?w=800&q=80&auto=format&fit=crop",
-    category: "DeFi",
-    tags: ["DeFi", "Yield", "Staking", "Liquidity", "ERC-4626"],
-    instructor: "Marcus Vance",
-    instructorTitle: "DeFi Research Analyst",
-    duration: "5 hours",
-    lessons: 28,
-    level: "Beginner",
-    featured: false,
-    rating: 4.7,
-    reviewCount: 275,
-    curriculum: [
-      {
-        section: "AMM Math & Liquidity",
-        lessons: ["Constant product x*y=k explained", "Adding and removing liquidity", "Impermanent loss calculator and hedging"],
-      },
-      {
-        section: "Staking & Vaults",
-        lessons: ["Synthetic staking contracts", "ERC-4626 standard for tokenized vaults", "Auto-compounding yield algorithms"],
-      },
-      {
-        section: "Risk Assessment",
-        lessons: ["Smart contract risk vs economic risk", "Evaluating token emissions and APY sustainability", "On-chain analytics tooling"],
-      },
-    ],
-    includes: [
-      "28 video lessons · 5 hours total",
-      "ERC-4626 vault contract reference implementation",
-      "Interactive impermanent loss spreadsheet & simulator",
-      "Lifetime access and updates",
-    ],
-  },
-];
+/** Course row as Prisma returns it (before mapping). */
+export type DbCourse = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  longDesc: string | null;
+  priceUsdt: Prisma.Decimal;
+  image: string;
+  category: string;
+  tags: string[];
+  instructor: string;
+  instructorTitle: string | null;
+  duration: string;
+  lessons: number;
+  level: string;
+  featured: boolean;
+  rating: Prisma.Decimal;
+  reviewCount: number;
+  curriculum: Prisma.JsonValue;
+  includes: string[];
+};
 
+/** UI taxonomy for filter chips; category counts always come from the DB. */
 export const CATEGORIES = [
   "All",
   "Blockchain",
@@ -452,15 +64,46 @@ export const CATEGORIES = [
   "Cryptography",
 ];
 
-export function getCourseBySlug(slug: string): Course | undefined {
-  return COURSES.find((c) => c.slug === slug);
+/** Runtime-validated shape of the curriculum JSON column. */
+function parseCurriculum(raw: unknown): { section: string; lessons: string[] }[] {
+  if (!Array.isArray(raw)) return [];
+  const out: { section: string; lessons: string[] }[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const { section, lessons } = item as { section?: unknown; lessons?: unknown };
+    if (typeof section !== "string" || !Array.isArray(lessons)) continue;
+    if (!lessons.every((l) => typeof l === "string")) continue;
+    out.push({ section, lessons: lessons as string[] });
+  }
+  return out;
 }
 
-export function getFeaturedCourses(): Course[] {
-  return COURSES.filter((c) => c.featured);
-}
-
-export function getCoursesByCategory(cat: string): Course[] {
-  if (cat === "All") return COURSES;
-  return COURSES.filter((c) => c.category === cat);
+/**
+ * Map a DB Course row to the UI Course shape. Single mapping point so every
+ * page/API renders DB content identically. No static lookups — anything the
+ * DB doesn't have gets an honest empty/default instead of fake data.
+ */
+export function dbCourseToCourse(c: DbCourse): Course {
+  return {
+    id: c.id,
+    slug: c.slug,
+    title: c.title,
+    subtitle: c.subtitle,
+    description: c.description,
+    longDesc: c.longDesc || "",
+    priceUsdt: Number(c.priceUsdt),
+    image: c.image,
+    category: c.category,
+    tags: c.tags,
+    instructor: c.instructor,
+    instructorTitle: c.instructorTitle || "Course Instructor",
+    duration: c.duration,
+    lessons: c.lessons,
+    level: (c.level as Course["level"]) || "Beginner",
+    featured: c.featured,
+    rating: Number(c.rating),
+    reviewCount: c.reviewCount,
+    curriculum: parseCurriculum(c.curriculum),
+    includes: c.includes || [],
+  };
 }

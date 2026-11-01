@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { COURSES } from "@/lib/courses-data";
+import { prisma, withDbRetry } from "@/lib/prisma";
 import { stablegate } from "@/lib/stablegate/client";
 
 export const dynamic = "force-dynamic";
@@ -71,16 +71,23 @@ function decodeX402Payment(header: string): unknown {
   }
 }
 
-function catalogPayload() {
+async function catalogPayload() {
+  // Live catalog straight from the DB — agents see exactly what humans see.
+  const rows = await withDbRetry(() =>
+    prisma.course.findMany({
+      where: { published: true },
+      orderBy: { rating: "desc" },
+    })
+  );
   return {
     source: "USDTStore marketplace",
     price: `${X402_PRICE} USDT per request`,
-    courses: COURSES.map((c) => ({
+    courses: rows.map((c) => ({
       id: c.id,
       slug: c.slug,
       title: c.title,
       category: c.category,
-      priceUsdt: c.priceUsdt,
+      priceUsdt: Number(c.priceUsdt),
       lessons: c.lessons,
       level: c.level,
     })),

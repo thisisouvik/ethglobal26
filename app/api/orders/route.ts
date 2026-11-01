@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma, withDbRetry } from "@/lib/prisma";
 import { WALLET_ADDRESS } from "@/lib/config";
-import { COURSES } from "@/lib/courses-data";
 import { ensureOrderIntent } from "@/lib/stablegate/orders";
 import { stablegate } from "@/lib/stablegate/client";
 import { z } from "zod";
@@ -29,58 +28,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { name, email, courseId, courseName, priceUsdt } = parsed.data;
+    const { name, email, courseId } = parsed.data;
 
-    // Verify course exists in Neon DB or catalog
-    let dbCourse = await prisma.course.findFirst({
-      where: {
-        OR: [{ id: courseId }, { slug: courseId }],
-      },
-    });
+    // The course MUST exist in the DB — no catalog fallback, no auto-insert.
+    // Clients send id or slug; the rest (name, price) is taken from the DB
+    // so a tampered payload can never set its own price.
+    const dbCourse = await withDbRetry(() =>
+      prisma.course.findFirst({
+        where: {
+          OR: [{ id: courseId }, { slug: courseId }],
+          published: true,
+        },
+      })
+    );
 
-    const catalogCourse = COURSES.find((c) => c.id === courseId || c.slug === courseId);
-    if (!dbCourse && !catalogCourse) {
+    if (!dbCourse) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
-
-    // Upsert course in Neon DB if not present
-    if (!dbCourse && catalogCourse) {
-      dbCourse = await prisma.course.upsert({
-        where: { slug: catalogCourse.slug },
-        update: {},
-        create: {
-          id: catalogCourse.id,
-          slug: catalogCourse.slug,
-          title: catalogCourse.title,
-          subtitle: catalogCourse.subtitle,
-          description: catalogCourse.description,
-          priceUsdt: catalogCourse.priceUsdt,
-          image: catalogCourse.image,
-          category: catalogCourse.category,
-          tags: catalogCourse.tags,
-          instructor: catalogCourse.instructor,
-          duration: catalogCourse.duration,
-          lessons: catalogCourse.lessons,
-          level: catalogCourse.level,
-          featured: catalogCourse.featured,
-          rating: catalogCourse.rating,
-          reviewCount: catalogCourse.reviewCount,
-        },
-      });
-    }
-
-    // Use authoritative price from DB / catalog
-    const verifiedPrice = dbCourse ? Number(dbCourse.priceUsdt) : catalogCourse!.priceUsdt;
-    const finalCourseId = dbCourse ? dbCourse.id : catalogCourse!.id;
-    const finalCourseName = dbCourse ? dbCourse.title : (catalogCourse?.title || courseName);
 
     const order = await prisma.order.create({
       data: {
         name,
         email,
-        courseId: finalCourseId,
-        courseName: finalCourseName,
-        priceUsdt: verifiedPrice,
+        courseId: dbCourse.id,
+        courseName: dbCourse.title,
+        priceUsdt: dbCourse.priceUsdt,
         paymentAddr: WALLET_ADDRESS,
         status: "PENDING",
         downloadUrl: process.env.PRODUCT_DOWNLOAD_URL || "#",

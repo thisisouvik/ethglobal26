@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Spinner, Clock, CheckCircle, Warning, ArrowRight } from "@phosphor-icons/react";
+import { Spinner, Clock, Warning, ArrowRight } from "@phosphor-icons/react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -49,7 +49,9 @@ function PendingContent() {
   }, [orderId, router]);
 
   useEffect(() => {
-    fetchOrder();
+    // Defer the initial fetch so no state updates happen synchronously in the effect.
+    const t = setTimeout(fetchOrder, 0);
+    return () => clearTimeout(t);
   }, [fetchOrder]);
 
   // Poll every 5 seconds while pending
