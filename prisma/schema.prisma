@@ -24,6 +24,7 @@ model Course {
   category    String
   tags        String[]
   instructor  String
+  instructorTitle String?
   duration    String   // e.g. "12 hours"
   lessons     Int
   level       String   // Beginner / Intermediate / Advanced
@@ -31,6 +32,10 @@ model Course {
   published   Boolean  @default(true)
   rating      Decimal  @default(4.5) @db.Decimal(3, 1)
   reviewCount Int      @default(0)
+
+  // Full course content lives in the DB — the app never falls back to static data.
+  curriculum  Json?    // [{ section: string, lessons: string[] }]
+  includes    String[]
 
   orders      Order[]
 }
