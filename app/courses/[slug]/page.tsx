@@ -15,12 +15,11 @@ import {
   ArrowLeft,
 } from "@phosphor-icons/react/dist/ssr";
 import { getCourseBySlug, COURSES } from "@/lib/courses-data";
+import { prisma } from "@/lib/prisma";
 import { RevealSection } from "@/components/RevealSection";
 import BuyButton from "./BuyButton";
 
-export async function generateStaticParams() {
-  return COURSES.map((c) => ({ slug: c.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -31,7 +30,7 @@ export async function generateMetadata({
   const course = getCourseBySlug(slug);
   if (!course) return {};
   return {
-    title: `${course.title} — USDTStore`,
+    title: `${course.title} — ChainCademy`,
     description: course.subtitle,
   };
 }
@@ -42,7 +41,29 @@ export default async function CourseDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const course = getCourseBySlug(slug);
+
+  // Query Neon DB first, fallback to catalog
+  let course = getCourseBySlug(slug);
+  try {
+    const dbCourse = await prisma.course.findUnique({
+      where: { slug },
+    });
+    if (dbCourse && course) {
+      course = {
+        ...course,
+        id: dbCourse.id,
+        title: dbCourse.title,
+        subtitle: dbCourse.subtitle,
+        description: dbCourse.description,
+        priceUsdt: Number(dbCourse.priceUsdt),
+        rating: Number(dbCourse.rating),
+        reviewCount: dbCourse.reviewCount,
+      };
+    }
+  } catch (err) {
+    console.error("Neon DB course detail fetch fallback:", err);
+  }
+
   if (!course) notFound();
 
   const totalLessons = course.curriculum.reduce(

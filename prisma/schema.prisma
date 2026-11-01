@@ -55,6 +55,15 @@ model Order {
   paymentAddr   String?
   webhookData   Json?
 
+  // StableGate gateway (non-custodial USDT payment gateway on Whitechain)
+  gatewayIntentId    String? @unique // pi_…
+  gatewayPaymentId   String? @unique // pay_… (needed for refunds)
+  gatewayStatus      String? // intent state machine: requires_authorization → … → succeeded
+  gatewayCheckoutUrl String? // hosted checkout /c/<intentId>
+  gatewayRefundId    String? // re_…
+  refundStatus       String? // requested → authorized → submitted → succeeded | failed
+  refundMode         String? // router | manual
+
   // Delivery
   downloadUrl String?
   deliveredAt DateTime?
@@ -72,4 +81,12 @@ enum OrderStatus {
   DELIVERED
   FAILED
   REFUNDED
+}
+
+// Dedupe of StableGate webhook events (gateway retries with backoff, key = event id)
+model StableGateEvent {
+  id         String   @id // evt_…
+  type       String
+  receivedAt DateTime @default(now())
+  payload    Json?
 }

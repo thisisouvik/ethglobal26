@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { stablegate } from "@/lib/stablegate/client";
 import PaymentClient from "./PaymentClient";
 
 export const dynamic = "force-dynamic";
@@ -27,15 +28,11 @@ export default async function PaymentPage({
       priceUsdt: true,
       paymentAddr: true,
       createdAt: true,
+      gatewayCheckoutUrl: true,
     },
   });
 
   if (!order) notFound();
-
-  // Already paid — redirect to success
-  if (order.status === "PAID" || order.status === "DELIVERED") {
-    // handled client-side in PaymentClient
-  }
 
   return (
     <PaymentClient
@@ -49,7 +46,8 @@ export default async function PaymentPage({
         paymentAddr: order.paymentAddr ?? "",
         createdAt: order.createdAt.toISOString(),
       }}
+      checkoutUrl={order.gatewayCheckoutUrl}
+      gatewayConfigured={stablegate.configured}
     />
   );
 }
-

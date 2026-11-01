@@ -16,8 +16,10 @@ const SORT_OPTIONS = [
 
 export default function CoursesClient({
   initialCategory,
+  courses = COURSES,
 }: {
   initialCategory: string;
+  courses?: Course[];
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState(initialCategory);
@@ -25,7 +27,7 @@ export default function CoursesClient({
   const [sort, setSort] = useState("featured");
 
   const filtered = useMemo(() => {
-    let list: Course[] = COURSES;
+    let list: Course[] = courses;
 
     if (category !== "All") {
       list = list.filter((c) => c.category === category);
@@ -169,9 +171,9 @@ export default function CoursesClient({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {filtered.map((course, i) => (
-              <RevealSection key={course.id} delay={Math.min(i * 60, 300)}>
+              <RevealSection key={course.id} className="h-full flex flex-col" delay={Math.min(i * 60, 300)}>
                 <CourseCard course={course} />
               </RevealSection>
             ))}

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import DashboardClient from "./DashboardClient";
 import { ADMIN_SECRET } from "@/lib/config";
+import { stablegate } from "@/lib/stablegate/client";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,25 @@ export default async function DashboardPage({
     take: 200,
   });
 
+  // Gateway connectivity (GET /v1/capabilities) — a down gateway degrades
+  // refunds and intent creation, so surface it to the operator.
+  let gateway: { connected: boolean; network?: string; token?: string; decimals?: number } = {
+    connected: false,
+  };
+  if (stablegate.configured) {
+    try {
+      const caps = await stablegate.getCapabilities();
+      gateway = {
+        connected: true,
+        network: (caps.network as string) ?? (caps.networkName as string),
+        token: (caps.tokenSymbol as string) ?? (caps.token as string) ?? "USDT",
+        decimals: typeof caps.decimals === "number" ? caps.decimals : undefined,
+      };
+    } catch {
+      gateway = { connected: false };
+    }
+  }
+
   const serialized = orders.map((o) => ({
     ...o,
     priceUsdt: Number(o.priceUsdt),
@@ -30,6 +50,11 @@ export default async function DashboardPage({
     updatedAt: o.updatedAt.toISOString(),
     deliveredAt: o.deliveredAt?.toISOString() ?? null,
     webhookData: null,
+    gatewayIntentId: o.gatewayIntentId,
+    gatewayPaymentId: o.gatewayPaymentId,
+    gatewayRefundId: o.gatewayRefundId,
+    refundStatus: o.refundStatus,
+    refundMode: o.refundMode,
   }));
 
   const stats = {
@@ -42,5 +67,7 @@ export default async function DashboardPage({
       .reduce((sum, o) => sum + Number(o.priceUsdt), 0),
   };
 
-  return <DashboardClient orders={serialized} stats={stats} token={token ?? ""} />;
+  return (
+    <DashboardClient orders={serialized} stats={stats} token={token ?? ""} gateway={gateway} />
+  );
 }

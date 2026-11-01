@@ -14,6 +14,9 @@ import {
   Sparkle,
 } from "@phosphor-icons/react/dist/ssr";
 import { COURSES, CATEGORIES, getFeaturedCourses } from "@/lib/courses-data";
+import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 import CourseCard from "@/components/CourseCard";
 import FaqAccordion from "@/components/FaqAccordion";
 import NetworkCanvas from "@/components/NetworkCanvas";
@@ -83,8 +86,42 @@ const HOW_IT_WORKS = [
   { step: "04", title: "Download instantly", body: "Payment confirms in minutes. Your download link arrives by email immediately." },
 ];
 
-export default function HomePage() {
-  const featured = getFeaturedCourses();
+export default async function HomePage() {
+  let featured = getFeaturedCourses();
+  try {
+    const dbFeatured = await prisma.course.findMany({
+      where: { featured: true, published: true },
+    });
+    if (dbFeatured && dbFeatured.length > 0) {
+      featured = dbFeatured.map((c) => {
+        const staticMatch = COURSES.find((sc) => sc.slug === c.slug);
+        return {
+          id: c.id,
+          slug: c.slug,
+          title: c.title,
+          subtitle: c.subtitle,
+          description: c.description,
+          longDesc: c.longDesc || staticMatch?.longDesc || "",
+          priceUsdt: Number(c.priceUsdt),
+          image: c.image,
+          category: c.category,
+          tags: c.tags,
+          instructor: c.instructor,
+          instructorTitle: staticMatch?.instructorTitle || "Web3 Specialist",
+          duration: c.duration,
+          lessons: c.lessons,
+          level: (c.level as "Beginner" | "Intermediate" | "Advanced") || "Beginner",
+          featured: c.featured,
+          rating: Number(c.rating),
+          reviewCount: c.reviewCount,
+          curriculum: staticMatch?.curriculum || [],
+          includes: staticMatch?.includes || [],
+        };
+      });
+    }
+  } catch (err) {
+    console.error("Neon DB featured query fallback:", err);
+  }
 
   return (
     <div className="flex flex-col">
@@ -210,9 +247,9 @@ export default function HomePage() {
             </div>
           </Reveal>
 
-          <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {featured.map((course) => (
-              <StaggerItem key={course.id}>
+              <StaggerItem key={course.id} className="h-full flex flex-col">
                 <CourseCard course={course} />
               </StaggerItem>
             ))}

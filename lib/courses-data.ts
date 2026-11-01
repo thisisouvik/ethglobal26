@@ -312,6 +312,135 @@ export const COURSES: Course[] = [
       "Lifetime access and updates",
     ],
   },
+  {
+    id: "course-wallet-07",
+    slug: "web3-wallets-ethers-crash-course",
+    title: "Web3 Wallets & Ethers.js Fast Track",
+    subtitle: "Connect wallets, sign transactions, and read contract state in 3 hours",
+    description:
+      "A fast-paced, hands-on workshop teaching modern wallet integration with Ethers.js, RainbowKit, and MetaMask. Ship transaction signing with zero fluff.",
+    longDesc:
+      "Master the essential bridge between user wallets and blockchain networks. In this focused micro-course, you will learn how to connect MetaMask, Rabby, and WalletConnect, manage network switching, sign typed data (EIP-712), and handle wallet disconnects gracefully. Perfect for developers wanting quick, practical Web3 frontend skills at an accessible price.",
+    priceUsdt: 4.99,
+    image:
+      "https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?w=800&q=80&auto=format&fit=crop",
+    category: "Web3",
+    tags: ["Ethers.js", "Wallets", "MetaMask", "EIP-712"],
+    instructor: "Liam Chen",
+    instructorTitle: "Web3 Frontend Specialist",
+    duration: "3 hours",
+    lessons: 18,
+    level: "Beginner",
+    featured: true,
+    rating: 4.9,
+    reviewCount: 542,
+    curriculum: [
+      {
+        section: "Wallet Providers",
+        lessons: ["Browser extensions vs injected providers", "RPC connection setup", "Handling account and chain change events"],
+      },
+      {
+        section: "Transaction Signing",
+        lessons: ["Sending native transfers", "ERC-20 approvals and transfers", "EIP-712 structured data signing"],
+      },
+      {
+        section: "Production Patterns",
+        lessons: ["Transaction receipt polling", "User rejection error handling", "Multi-wallet connection modal"],
+      },
+    ],
+    includes: [
+      "18 video lessons · 3 hours total",
+      "Ready-to-use wallet connection boilerplate",
+      "EIP-712 signature verification helper",
+      "Lifetime access and updates",
+    ],
+  },
+  {
+    id: "course-gas-08",
+    slug: "solidity-gas-optimization-handbook",
+    title: "Solidity Gas Optimization Masterclass",
+    subtitle: "Cut EVM transaction costs by up to 40% with assembly and opcode tricks",
+    description:
+      "Concrete techniques to slash gas consumption in EVM smart contracts. Covers storage packing, custom errors, Yul assembly, and calldata caching.",
+    longDesc:
+      "High gas costs kill dApp adoption. This intensive course teaches you the exact gas-saving techniques used by leading DeFi protocols. You will dive into EVM storage slot packing, immutable vs constant variables, unchecked math, calldata vs memory optimization, and targeted inline Yul assembly to reduce execution gas by up to 40%.",
+    priceUsdt: 6.5,
+    image:
+      "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&q=80&auto=format&fit=crop",
+    category: "Blockchain",
+    tags: ["Solidity", "Gas", "Yul", "EVM", "Optimization"],
+    instructor: "Sophia Rodriguez",
+    instructorTitle: "Principal EVM Optimization Engineer",
+    duration: "4.5 hours",
+    lessons: 24,
+    level: "Intermediate",
+    featured: false,
+    rating: 4.8,
+    reviewCount: 388,
+    curriculum: [
+      {
+        section: "EVM Storage Mechanics",
+        lessons: ["Slot packing rules and bitmasking", "Transient storage (EIP-1153)", "Constant and immutable compiler inlining"],
+      },
+      {
+        section: "Execution Optimizations",
+        lessons: ["Custom errors vs require strings", "Calldata routing vs memory copies", "Short-circuiting boolean evaluations"],
+      },
+      {
+        section: "Yul & Assembly Techniques",
+        lessons: ["Inline assembly for memory management", "Optimizing hash calculations", "Foundry gas snapshot profiling"],
+      },
+    ],
+    includes: [
+      "24 video lessons · 4.5 hours total",
+      "Gas benchmark test suite in Foundry",
+      "Top 30 gas optimization patterns cheat sheet",
+      "Lifetime access and updates",
+    ],
+  },
+  {
+    id: "course-defi-starter-09",
+    slug: "defi-yield-farming-fundamentals",
+    title: "DeFi Yield & Staking Fundamentals",
+    subtitle: "Understand liquidity pools, impermanent loss, and token staking math",
+    description:
+      "Clear, actionable guide to how DeFi yields actually work. Learn liquidity provisioning, staking contract mechanics, and risk management.",
+    longDesc:
+      "Demystify the mechanics behind DeFi yields. This course breaks down Automated Market Maker (AMM) liquidity pools, calculating real yields vs inflationary rewards, modeling impermanent loss, and interacting with single-sided staking and vault contracts. Includes code walkthroughs of Uniswap V2 and ERC-4626 Tokenized Vaults.",
+    priceUsdt: 8.9,
+    image:
+      "https://images.unsplash.com/photo-1642543492481-44e81e3914a7?w=800&q=80&auto=format&fit=crop",
+    category: "DeFi",
+    tags: ["DeFi", "Yield", "Staking", "Liquidity", "ERC-4626"],
+    instructor: "Marcus Vance",
+    instructorTitle: "DeFi Research Analyst",
+    duration: "5 hours",
+    lessons: 28,
+    level: "Beginner",
+    featured: false,
+    rating: 4.7,
+    reviewCount: 275,
+    curriculum: [
+      {
+        section: "AMM Math & Liquidity",
+        lessons: ["Constant product x*y=k explained", "Adding and removing liquidity", "Impermanent loss calculator and hedging"],
+      },
+      {
+        section: "Staking & Vaults",
+        lessons: ["Synthetic staking contracts", "ERC-4626 standard for tokenized vaults", "Auto-compounding yield algorithms"],
+      },
+      {
+        section: "Risk Assessment",
+        lessons: ["Smart contract risk vs economic risk", "Evaluating token emissions and APY sustainability", "On-chain analytics tooling"],
+      },
+    ],
+    includes: [
+      "28 video lessons · 5 hours total",
+      "ERC-4626 vault contract reference implementation",
+      "Interactive impermanent loss spreadsheet & simulator",
+      "Lifetime access and updates",
+    ],
+  },
 ];
 
 export const CATEGORIES = [
@@ -335,4 +464,3 @@ export function getCoursesByCategory(cat: string): Course[] {
   if (cat === "All") return COURSES;
   return COURSES.filter((c) => c.category === cat);
 }
-
