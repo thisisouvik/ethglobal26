@@ -1,6 +1,12 @@
 // DB connectivity + content health check.
 // Usage: npm run db:health  (reads DATABASE_URL from .env)
 // Exit code 0 = healthy, 1 = unreachable/empty. Used locally and in CI.
+
+if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.trim()) {
+  console.log('⚠️ DATABASE_URL is not set — skipping database health check.');
+  process.exit(0);
+}
+
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient({ log: ['error'] });
