@@ -7,27 +7,20 @@ import {
   BookOpen,
   ShieldCheck,
   Lightning,
-  CurrencyDollar,
   Globe,
   TrendUp,
   ArrowUpRight,
   Sparkle,
+  Warning,
 } from "@phosphor-icons/react/dist/ssr";
-import { COURSES, CATEGORIES, getFeaturedCourses } from "@/lib/courses-data";
-import { prisma } from "@/lib/prisma";
+import { CATEGORIES, type Course } from "@/lib/courses-data";
+import { prisma, withDbRetry } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 import CourseCard from "@/components/CourseCard";
 import FaqAccordion from "@/components/FaqAccordion";
 import NetworkCanvas from "@/components/NetworkCanvas";
 import { Reveal, StaggerGroup, StaggerItem, Counter, Marquee, KineticHeadline, GlowCard } from "@/components/Motion";
-
-const STATS = [
-  { label: "Courses available", value: 24, suffix: "+", icon: BookOpen },
-  { label: "Students enrolled", value: 4800, suffix: "+", icon: Users },
-  { label: "USDT in payouts", prefix: "$", value: 180, suffix: "K+", icon: CurrencyDollar },
-  { label: "Countries reached", value: 63, suffix: "", icon: Globe },
-];
 
 const TRUST = [
   {
@@ -86,58 +79,132 @@ const HOW_IT_WORKS = [
   { step: "04", title: "Download instantly", body: "Payment confirms in minutes. Your download link arrives by email immediately." },
 ];
 
+// Everything below is computed from the live database — no hardcoded numbers.
+async function getHomeData() {
+  const [featured, courseCount, lessonAgg, instructorCount, ratingAgg, categoryGroups] =
+    await withDbRetry(() =>
+      Promise.all([
+        prisma.course.findMany({
+          where: { featured: true, published: true },
+          orderBy: { rating: "desc" },
+        }),
+        prisma.course.count({ where: { published: true } }),
+        prisma.course.aggregate({ _sum: { lessons: true }, where: { published: true } }),
+        prisma.course.groupBy({ by: ["instructor"], where: { published: true } }),
+        prisma.course.aggregate({ _avg: { rating: true }, where: { published: true } }),
+        prisma.course.groupBy({ by: ["category"], where: { published: true }, _count: { _all: true } }),
+      ])
+    );
+
+  return {
+    featured,
+    courseCount,
+    totalLessons: lessonAgg._sum.lessons ?? 0,
+    instructorCount: instructorCount.length,
+    avgRating: ratingAgg._avg.rating ?? 0,
+    categoryCounts: new Map(categoryGroups.map((g) => [g.category, g._count._all])),
+  };
+}
+
 export default async function HomePage() {
-  let featured = getFeaturedCourses();
+  let featured: Course[] = [];
+  let dbError = false;
+  let stats = { courseCount: 0, totalLessons: 0, instructorCount: 0, avgRating: 0 };
+  let categoryCounts = new Map<string, number>();
+
   try {
-    const dbFeatured = await prisma.course.findMany({
-      where: { featured: true, published: true },
-    });
-    if (dbFeatured && dbFeatured.length > 0) {
-      featured = dbFeatured.map((c) => {
-        const staticMatch = COURSES.find((sc) => sc.slug === c.slug);
-        return {
-          id: c.id,
-          slug: c.slug,
-          title: c.title,
-          subtitle: c.subtitle,
-          description: c.description,
-          longDesc: c.longDesc || staticMatch?.longDesc || "",
-          priceUsdt: Number(c.priceUsdt),
-          image: c.image,
-          category: c.category,
-          tags: c.tags,
-          instructor: c.instructor,
-          instructorTitle: staticMatch?.instructorTitle || "Web3 Specialist",
-          duration: c.duration,
-          lessons: c.lessons,
-          level: (c.level as "Beginner" | "Intermediate" | "Advanced") || "Beginner",
-          featured: c.featured,
-          rating: Number(c.rating),
-          reviewCount: c.reviewCount,
-          curriculum: staticMatch?.curriculum || [],
-          includes: staticMatch?.includes || [],
-        };
-      });
-    }
+    const data = await getHomeData();
+    featured = data.featured.map((c) => ({
+      id: c.id,
+      slug: c.slug,
+      title: c.title,
+      subtitle: c.subtitle,
+      description: c.description,
+      longDesc: c.longDesc || "",
+      priceUsdt: Number(c.priceUsdt),
+      image: c.image,
+      category: c.category,
+      tags: c.tags,
+      instructor: c.instructor,
+      instructorTitle: c.instructorTitle || "Course Instructor",
+      duration: c.duration,
+      lessons: c.lessons,
+      level: (c.level as Course["level"]) || "Beginner",
+      featured: c.featured,
+      rating: Number(c.rating),
+      reviewCount: c.reviewCount,
+      curriculum: [],
+      includes: [],
+    }));
+    stats = {
+      courseCount: data.courseCount,
+      totalLessons: data.totalLessons,
+      instructorCount: data.instructorCount,
+      avgRating: Math.round(Number(data.avgRating) * 10) / 10,
+    };
+    categoryCounts = data.categoryCounts;
   } catch (err) {
-    console.error("Neon DB featured query fallback:", err);
+    dbError = true;
+    console.error("[HomePage] database unavailable:", err);
   }
+
+  type Stat = {
+    label: string;
+    value: number;
+    suffix: string;
+    icon: typeof BookOpen;
+    prefix?: string;
+    decimals?: number;
+  };
+  const STATS: Stat[] = [
+    { label: "Courses published", value: stats.courseCount, suffix: "", icon: BookOpen },
+    { label: "Video lessons", value: stats.totalLessons, suffix: "+", icon: Lightning },
+    { label: "Expert instructors", value: stats.instructorCount, suffix: "", icon: Users },
+    { label: "Average course rating", value: stats.avgRating, suffix: " / 5", icon: Star, decimals: 1 },
+  ];
 
   return (
     <div className="flex flex-col">
 
       {/* ─── HERO ────────────────────────────────────────────────────── */}
       <section className="relative flex flex-col items-center justify-center text-center px-6 pt-44 pb-36 overflow-hidden min-h-[92vh]">
-        {/* Canvas network background */}
+        {/* Deep-space backdrop (real photo, heavily darkened) */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-25"
+            style={{
+              backgroundImage:
+                "url(https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2400&auto=format&fit=crop)",
+            }}
+          />
+          {/* Tint + vignette so text stays readable */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse at 50% 38%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.82) 55%, #000 100%)",
+            }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 30%, transparent 60%, #000 100%)" }}
+          />
+        </div>
+
+        {/* Animated network constellation */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden>
           <NetworkCanvas />
         </div>
 
-        {/* Radial glow overlay */}
+        {/* Accent glows */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden>
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[700px] rounded-full"
-            style={{ background: "radial-gradient(ellipse, rgba(38,161,123,0.07) 0%, transparent 65%)" }}
+            className="absolute top-1/3 left-1/4 w-[500px] h-[400px] rounded-full blur-[120px] animate-glow-drift"
+            style={{ background: "rgba(38,161,123,0.10)" }}
+          />
+          <div
+            className="absolute bottom-1/4 right-1/5 w-[400px] h-[350px] rounded-full blur-[110px] animate-glow-drift-reverse"
+            style={{ background: "rgba(45,212,191,0.07)" }}
           />
           <div
             className="absolute bottom-0 left-0 right-0 h-40"
@@ -212,7 +279,7 @@ export default async function HomePage() {
                   <s.icon size={22} weight="duotone" className="text-[var(--accent)]" />
                 </div>
                 <p className="heading-4 text-white">
-                  <Counter to={s.value} prefix={s.prefix ?? ""} suffix={s.suffix} />
+                  <Counter to={s.value} prefix={s.prefix ?? ""} suffix={s.suffix} decimals={s.decimals ?? 0} />
                 </p>
                 <p className="caption-2 text-[var(--text-secondary)]">{s.label}</p>
               </div>
@@ -236,7 +303,7 @@ export default async function HomePage() {
               <Link
                 href="/courses"
                 className="inline-flex items-center gap-2 caption-1 text-[var(--text-secondary)] hover:text-white transition-colors duration-200 group"
-               
+
               >
                 View all courses
                 <ArrowUpRight
@@ -247,13 +314,30 @@ export default async function HomePage() {
             </div>
           </Reveal>
 
-          <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-            {featured.map((course) => (
-              <StaggerItem key={course.id} className="h-full flex flex-col">
-                <CourseCard course={course} />
-              </StaggerItem>
-            ))}
-          </StaggerGroup>
+          {dbError ? (
+            <div
+              className="card p-10 flex flex-col items-center gap-4 text-center"
+              style={{ borderRadius: "var(--radius-xl)", borderColor: "rgba(248,113,113,0.35)" }}
+            >
+              <Warning size={28} weight="duotone" className="text-red-400" />
+              <h3 className="title-2 text-white">Catalog temporarily unavailable</h3>
+              <p className="body-6 text-[var(--text-secondary)] max-w-md">
+                We couldn&apos;t reach the course database. Nothing is faked behind
+                the scenes — please retry in a moment.
+              </p>
+              <Link href="/" className="btn-secondary py-2.5 px-6 mt-2">
+                Retry
+              </Link>
+            </div>
+          ) : (
+            <StaggerGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+              {featured.map((course) => (
+                <StaggerItem key={course.id} className="h-full flex flex-col">
+                  <CourseCard course={course} />
+                </StaggerItem>
+              ))}
+            </StaggerGroup>
+          )}
         </div>
       </section>
 
@@ -280,14 +364,14 @@ export default async function HomePage() {
           </Reveal>
           <StaggerGroup className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {CATEGORIES.filter((c) => c !== "All").map((cat) => {
-              const count = COURSES.filter((c) => c.category === cat).length;
+              const count = categoryCounts.get(cat) ?? 0;
               return (
                 <StaggerItem key={cat}>
                   <Link
                     href={`/courses?category=${cat}`}
                     className="card card-hover p-6 flex flex-col items-center text-center gap-3 group block"
                     style={{ borderRadius: "var(--radius-xl)" }}
-                   
+
                   >
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300"

@@ -34,8 +34,11 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  // Close mobile menu on route change
-  useEffect(() => { setOpen(false); }, [pathname]);
+  // Close mobile menu on route change (deferred so the route render commits first)
+  useEffect(() => {
+    const t = setTimeout(() => setOpen(false), 0);
+    return () => clearTimeout(t);
+  }, [pathname]);
 
   return (
     <>

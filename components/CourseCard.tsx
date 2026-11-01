@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Star, Clock, BookOpen, ArrowRight } from "@phosphor-icons/react";
@@ -17,6 +18,10 @@ const LEVEL_TEXT: Record<string, string> = {
 };
 
 export default function CourseCard({ course }: { course: Course }) {
+  // Broken or unreachable image URLs in the DB degrade to a themed
+  // placeholder instead of a permanently empty gray box.
+  const [imageFailed, setImageFailed] = useState(false);
+
   return (
     <Link
       href={`/courses/${course.slug}`}
@@ -27,13 +32,28 @@ export default function CourseCard({ course }: { course: Course }) {
     >
       {/* Thumbnail */}
       <div className="relative w-full h-[200px] shrink-0 overflow-hidden bg-[var(--bg-surface-2)]">
-        <Image
-          src={course.image}
-          alt={course.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
+        {imageFailed ? (
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              background:
+                "radial-gradient(ellipse at 50% 40%, rgba(38,161,123,0.18) 0%, var(--bg-surface-3) 75%)",
+            }}
+          >
+            <span className="heading-1 text-white/15 font-bold select-none">
+              {course.title.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        ) : (
+          <Image
+            src={course.image}
+            alt={course.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            onError={() => setImageFailed(true)}
+          />
+        )}
         {/* Category badge */}
         <div className="absolute top-3 left-3 z-10">
           <span className="accent-badge text-xs backdrop-blur-md bg-black/60">{course.category}</span>

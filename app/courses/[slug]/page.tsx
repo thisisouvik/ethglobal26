@@ -10,12 +10,10 @@ import {
   ArrowRight,
   Play,
   Lock,
-  Broadcast,
-  DownloadSimple,
   ArrowLeft,
 } from "@phosphor-icons/react/dist/ssr";
-import { getCourseBySlug, COURSES } from "@/lib/courses-data";
-import { prisma } from "@/lib/prisma";
+import { dbCourseToCourse } from "@/lib/courses-data";
+import { prisma, withDbRetry } from "@/lib/prisma";
 import { RevealSection } from "@/components/RevealSection";
 import BuyButton from "./BuyButton";
 
@@ -27,12 +25,20 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const course = getCourseBySlug(slug);
-  if (!course) return {};
-  return {
-    title: `${course.title} — ChainCademy`,
-    description: course.subtitle,
-  };
+  try {
+    const dbCourse = await withDbRetry(() =>
+      prisma.course.findUnique({ where: { slug } })
+    );
+    if (dbCourse) {
+      return {
+        title: `${dbCourse.title} — ChainCademy`,
+        description: dbCourse.subtitle,
+      };
+    }
+  } catch (err) {
+    console.error("[CourseDetail] metadata fetch failed:", err);
+  }
+  return {};
 }
 
 export default async function CourseDetailPage({
@@ -42,26 +48,20 @@ export default async function CourseDetailPage({
 }) {
   const { slug } = await params;
 
-  // Query Neon DB first, fallback to catalog
-  let course = getCourseBySlug(slug);
+  // The DB is the source of truth. Any course added to the DB gets a full
+  // page here, whether or not it was in the original seed catalog.
+  let course;
   try {
-    const dbCourse = await prisma.course.findUnique({
-      where: { slug },
-    });
-    if (dbCourse && course) {
-      course = {
-        ...course,
-        id: dbCourse.id,
-        title: dbCourse.title,
-        subtitle: dbCourse.subtitle,
-        description: dbCourse.description,
-        priceUsdt: Number(dbCourse.priceUsdt),
-        rating: Number(dbCourse.rating),
-        reviewCount: dbCourse.reviewCount,
-      };
+    const dbCourse = await withDbRetry(() =>
+      prisma.course.findUnique({ where: { slug } })
+    );
+    if (dbCourse && dbCourse.published) {
+      course = dbCourseToCourse(dbCourse);
     }
   } catch (err) {
-    console.error("Neon DB course detail fetch fallback:", err);
+    console.error("[CourseDetail] database unavailable:", err);
+    // Rethrow so the error boundary reports the real problem instead of a 404.
+    throw err;
   }
 
   if (!course) notFound();

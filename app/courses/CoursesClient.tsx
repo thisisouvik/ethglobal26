@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { MagnifyingGlass, Funnel, SortAscending } from "@phosphor-icons/react";
+import { MagnifyingGlass, Funnel, SortAscending, Warning } from "@phosphor-icons/react";
 import CourseCard from "@/components/CourseCard";
-import { COURSES, CATEGORIES, type Course } from "@/lib/courses-data";
+import { CATEGORIES, type Course } from "@/lib/courses-data";
 import { RevealSection } from "@/components/RevealSection";
 
 const LEVELS = ["All Levels", "Beginner", "Intermediate", "Advanced"];
@@ -16,10 +16,12 @@ const SORT_OPTIONS = [
 
 export default function CoursesClient({
   initialCategory,
-  courses = COURSES,
+  courses,
+  dbError = false,
 }: {
   initialCategory: string;
-  courses?: Course[];
+  courses: Course[];
+  dbError?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState(initialCategory);
@@ -64,7 +66,7 @@ export default function CoursesClient({
     }
 
     return list;
-  }, [query, category, level, sort]);
+  }, [query, category, level, sort, courses]);
 
   return (
     <div className="min-h-screen pt-28 pb-24 px-6">
@@ -74,9 +76,22 @@ export default function CoursesClient({
         <RevealSection className="mb-12">
           <h1 className="heading-2 text-white mb-3">All courses</h1>
           <p className="body-3 text-[var(--text-secondary)]">
-            {COURSES.length} courses · Pay in USDT · Lifetime access
+            {courses.length} courses · Pay in USDT · Lifetime access
           </p>
         </RevealSection>
+
+        {dbError && (
+          <div
+            className="card p-6 mb-10 flex items-center gap-4"
+            style={{ borderRadius: "var(--radius-lg)", borderColor: "rgba(248,113,113,0.35)" }}
+          >
+            <Warning size={22} weight="duotone" className="text-red-400 shrink-0" />
+            <p className="body-6 text-[var(--text-secondary)]">
+              Couldn&apos;t reach the course database, so the catalog may be
+              incomplete or empty. Please retry in a moment.
+            </p>
+          </div>
+        )}
 
         {/* Filter bar */}
         <div className="flex flex-col lg:flex-row gap-4 mb-10">

@@ -42,17 +42,22 @@ export function Counter({
   to,
   suffix = "",
   prefix = "",
+  decimals = 0,
   className = "",
 }: {
   to: number;
   suffix?: string;
   prefix?: string;
+  decimals?: number;
   className?: string;
 }) {
   return (
     <span className={className}>
       {prefix}
-      {to.toLocaleString()}
+      {to.toLocaleString(undefined, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })}
       {suffix}
     </span>
   );
