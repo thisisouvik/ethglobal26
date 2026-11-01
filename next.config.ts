@@ -6,11 +6,14 @@ const nextConfig: NextConfig = {
     agentFeedback: true,
   },
   images: {
+    // Course images come from the DB and may use any https CDN (Unsplash,
+    // Pexels, instructor-hosted assets, …). Restricting hosts here caused
+    // images of newly added courses to silently fail to load, so https is
+    // allowed broadly; broken URLs degrade to a placeholder in CourseCard.
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "images.unsplash.com",
-        pathname: "/**",
+        hostname: "**",
       },
     ],
   },

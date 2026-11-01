@@ -1,0 +1,132 @@
+name: CI
+
+# Runs on every PR and every push to main:
+#   1. Lint + typecheck
+#   2. Full integration pass against a REAL Postgres database:
+#      push schema → seed catalog → production build → boot the app →
+#      assert every page/API serves DB content (pages, curriculum,
+#      images, order flow, x402 contract).
+#   3. On main only: health-check the production Neon database so a
+#      "Can't reach database server" error is caught here, not in dev.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+  integration:
+    name: Build & Integration Tests (real Postgres)
+    runs-on: ubuntu-latest
+    needs: quality
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: chaincademy_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chaincademy_test?sslmode=disable&connect_timeout=15&pool_timeout=10&connection_limit=5
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/chaincademy_test?sslmode=disable
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Push Prisma schema to test database
+        run: npx prisma db push --skip-generate
+
+      - name: Seed catalog into test database
+        run: node scripts/seed-neon.js
+
+      - name: Production build
+        run: npm run build
+
+      - name: Start app and wait for health
+        run: |
+          npm run start &
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3000/api/health > /dev/null; then
+              echo "App is up (attempt $i)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "App failed to become healthy within 120s"
+          exit 1
+
+      - name: Integration tests (real DB, real HTTP)
+        run: npm run test:integration
+        env:
+          BASE_URL: http://127.0.0.1:3000
+
+  prod-db-health:
+    name: Production DB health (Neon)
+    runs-on: ubuntu-latest
+    needs: integration
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Check production database reachability
+        # Catches the exact "Can't reach database server at …neon.tech" class
+        # of failure on push, with the transient-error retry logic enabled.
+        run: node scripts/db-health.js
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}

@@ -221,10 +221,65 @@ Visit [http://localhost:3000](http://localhost:3000) to view the marketplace.
 - `npm run build`: Generates Prisma client and creates an optimized production build
 - `npm run start`: Runs the production server
 - `npm run lint`: Runs ESLint checks
+- `npm run typecheck`: Runs TypeScript checks (`tsc --noEmit`)
+- `npm run test:integration`: Runs the integration suite against a running app + its real database
 - `npm run db:generate`: Generates Prisma Client
 - `npm run db:push`: Synchronizes Prisma schema with the database
 - `npm run db:migrate`: Creates and applies database migrations
+- `npm run db:seed`: Upserts the course catalog (`prisma/courses.seed.json`) into the database
+- `npm run db:health`: Checks database reachability and content (used by CI)
 - `npm run db:studio`: Opens Prisma Studio GUI to view database records
+
+---
+
+## 🗄️ Database Is the Single Source of Truth
+
+There is **no static course catalog and no fallback data** anywhere in the app:
+
+- Every page (home, `/courses`, `/courses/[slug]`) and every API (`/api/orders`, `/api/agent/courses`) reads course content straight from the database.
+- Course **curriculum, includes, and instructor titles live in the DB** (`Course.curriculum` JSON, `Course.includes`, `Course.instructorTitle`) — add a course to the DB and it gets a complete detail page automatically.
+- Prices on orders are always taken from the DB row; a tampered client payload cannot set its own price, and orders for unknown courses are rejected (no auto-insert).
+- If the database is unreachable, pages show an honest error state (the homepage and catalog never render fake content), and transient Neon cold-start/network blips are retried (`withDbRetry` in `lib/prisma.ts`).
+- Content changes flow into the DB via `npm run db:seed` (from `prisma/courses.seed.json`) or Prisma Studio.
+
+Runtime connections use the Neon **pooled** endpoint (`DATABASE_URL`, with `connect_timeout`/`pool_timeout`/`connection_limit` tuning); migrations and `db push` use the **direct** endpoint (`DIRECT_URL`).
+
+---
+
+## 🤖 CI/CD (GitHub Actions)
+
+### `CI` — runs on every push and pull request (`.github/workflows/ci.yml`)
+
+1. **Lint & Typecheck** — ESLint + `tsc --noEmit`.
+2. **Build & Integration Tests** — a real PostgreSQL 16 service container is started, then:
+   `prisma db push` → seed the catalog → `next build` → `next start` → `npm run test:integration`.
+   The integration suite (`tests/integration.mjs`) hits the real app over HTTP and asserts, among other things:
+   - `/api/health` reports a reachable database;
+   - the homepage lists exactly the featured courses in the DB (and omits non-featured ones);
+   - `/courses` and every `/courses/<slug>` render the DB titles, curriculum sections, and includes items (catches "new course 404s" and missing content);
+   - **every course image resolves directly and through the Next.js image optimizer** (catches broken image URLs / missing `remotePatterns`);
+   - `POST /api/orders` ignores tampered prices and stores the DB price (verified in the DB), rejects unknown courses, and the test order is cleaned up afterwards;
+   - `/api/agent/courses` returns the documented `503 x402_unavailable` contract when no gateway key is set.
+3. **Production DB health** (push to `main` only) — runs `npm run db:health` against `PROD_DATABASE_URL`, so a "Can't reach database server at …neon.tech" failure is caught on push, not in the browser.
+
+### `Deploy` — runs after CI passes on `main` (`.github/workflows/deploy.yml`)
+
+1. Applies the Prisma schema to the production Neon database (`prisma db push` — additive fields only).
+2. Verifies production DB health.
+3. Builds and deploys to Vercel (production).
+4. Smoke-tests the live deployment's `/api/health`.
+
+**Required repository secrets** (Settings → Secrets and variables → Actions):
+
+| Secret | Purpose |
+|---|---|
+| `PROD_DATABASE_URL` | Neon **pooled** connection string (runtime + health check) |
+| `PROD_DIRECT_URL` | Neon **direct** connection string (schema changes) |
+| `VERCEL_TOKEN` | Vercel access token (account settings → tokens) |
+| `VERCEL_ORG_ID` | Vercel org id |
+| `VERCEL_PROJECT_ID` | Vercel project id |
+
+Until these secrets are added, deploy steps skip themselves with a notice while CI still enforces the full test suite on every change.
 
 ---
 

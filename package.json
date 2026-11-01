@@ -7,10 +7,13 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test:integration": "node tests/integration.mjs",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "node --env-file=.env scripts/seed-neon.js",
+    "db:health": "node --env-file=.env scripts/db-health.js",
     "db:studio": "prisma studio"
   },
   "dependencies": {
